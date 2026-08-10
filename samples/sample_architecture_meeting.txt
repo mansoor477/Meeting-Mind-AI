@@ -1,0 +1,16 @@
+[00:00:15] Speaker 1: Hi everyone, um, welcome to today's architecture and sprint planning sync. I'm Rahul, Backend Lead.
+[00:00:25] Speaker 2: Hey Rahul! Priya here from Product. Let's make sure we finalize the session caching strategy and the auth refresh token tickets for Sprint 4.
+[00:00:40] Speaker 3: Hey folks, Alex from DevOps here. Sneha is also on the call representing Frontend.
+[00:01:05] Speaker 1: Great! So, uh, first item on the agenda is our session storage. Right now we are experiencing memory pressure under peak loads with our legacy in-memory cache. We evaluated Redis versus Memcached.
+[00:01:30] Speaker 3: Yeah, you know, from infrastructure perspective, Redis gives us sentinel clustering, built-in persistence, and automatic failover. Memcached would require custom replication logic.
+[00:02:00] Speaker 1: Agreed. So we have decided to use Redis for session caching instead of Memcached. This will impact the Auth Microservice, User Session Store, and API Gateway. I'll own this choice.
+[00:02:30] Speaker 2: Excellent decision. What about the task for refresh tokens?
+[00:02:45] Speaker 1: So, um, I'll take the lead on implementing JWT Refresh Token Rotation. The target timeline is the end of Sprint 4, which is Friday.
+[00:03:15] Speaker 2: What are the acceptance criteria for that task?
+[00:03:30] Speaker 1: The criteria are: first, refresh tokens must expire in 7 days and invalidate immediately upon reuse. Second, we must add a unit test suite covering concurrent refresh token requests. Third, we need to update the API auth docs in Confluence.
+[00:04:00] Speaker 3: Sounds good. On my side, Alex, I will setup the Redis Sentinel Cluster Infrastructure on AWS ElastiCache by Wednesday next week. Acceptance criteria: provision a 3-node Redis cluster with failover, configure Vault secrets, and verify benchmark latency stays under 5ms.
+[00:04:40] Speaker 4: Sneha here! I'll build the UI Notification Banner for Active Sessions by Sprint 5. Acceptance criteria: show a session timeout warning modal 2 minutes before refresh token expiration, and include a silent auto-refresh mechanism.
+[00:05:15] Speaker 3: Now regarding project risks... We identified a high severity risk: database schema migration script lock time on the main user table under high traffic.
+[00:05:40] Speaker 1: Yeah, ah, if we run standard DDL migrations, the user table might lock during peak hours. Our mitigation strategy is to run a non-blocking online schema migration tool like gh-ost or pt-online-schema-change during off-peak maintenance.
+[00:06:10] Speaker 2: Also a medium risk: third-party SMS rate limiting for 2FA validation. Mitigation: implement fallback email OTP provider if SMS API fails or hits quota limits.
+[00:06:45] Speaker 2: Awesome alignment team! Let's get these tasks locked into Jira.

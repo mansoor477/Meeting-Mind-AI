@@ -1,0 +1,7 @@
+[09:30:00] Speaker 1: Good morning team, I'm Vikram, Engineering Manager. Let's do a quick sprint alignment.
+[09:30:15] Speaker 2: Hi Vikram, David here from QA. We have several test automation tickets pending for the checkout service.
+[09:30:35] Speaker 3: Hey, Priya (Product Manager) here. Our primary objective this sprint is delivering the Stripe API Payment Gateway Integration.
+[09:31:00] Speaker 1: Right, um, so for the decision on payment vendor: we decided to integrate Stripe API as our primary payment gateway over PayPal due to better developer tooling and lower transaction fees.
+[09:31:35] Speaker 3: For action items: Rahul (Backend Lead) will implement the Payment Intent API endpoints by Thursday. Acceptance criteria: handle webhook retries, store transaction logs securely, and ensure idempotency.
+[09:32:10] Speaker 2: David (QA Lead) will write automated end-to-end Cypress tests for checkout flows by Friday. Acceptance criteria: test successful payment, failed card declined scenarios, and 3DS verification.
+[09:32:45] Speaker 1: One main risk identified: potential delay in Stripe Webhook listener sandbox approval from the compliance team. Mitigation: proceed using mock webhook triggers in staging environment.

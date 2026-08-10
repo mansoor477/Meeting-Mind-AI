@@ -1,0 +1,12 @@
+[00:00:15] Rahul (Backend Lead): Um, alright team, let's get started with our Architecture & Sprint 4 Planning session.
+[00:00:25] Priya (Product Manager): Thanks Rahul. Basically, our main goal today is to address session caching performance issues and settle the authentication flow for the upcoming release.
+[00:01:05] Rahul (Backend Lead): You know, looking at the telemetry, Memcached is hitting connection limits during peak hours. I strongly recommend we migrate session caching to Redis.
+[00:01:40] Amit (DevOps Lead): I agree with Rahul. Redis gives us persistence and cluster clustering support. But uh, migrating to Redis will require updating our Helm charts and Redis operator configuration in Kubernetes.
+[00:02:15] Priya (Product Manager): Okay, so decision is: We migrate session caching from Memcached to Redis to resolve peak connection bottlenecks. Amit, can you take ownership of updating the Helm charts?
+[00:02:40] Amit (DevOps Lead): Absolutely. I will create a task to update Kubernetes Helm charts for Redis cluster deployment by Thursday. High priority, moderate effort. Acceptance criteria: Redis cluster deployed in staging with monitoring enabled.
+[00:03:10] Rahul (Backend Lead): I'll take the backend task to implement the Redis session store client in Python. Target timeline is end of Sprint 4. High priority, moderate effort. Acceptance criteria: Redis connection pooling implemented, unit test coverage > 90%, session lookup latency < 5ms.
+[00:03:50] Sneha (Frontend Lead): From the UI side, we also need to implement JWT refresh token rotation to prevent users from getting logged out randomly.
+[00:04:15] Rahul (Backend Lead): Right. Let's assign JWT refresh token rotation to Sneha. Priority High, effort Moderate, timeline Sprint 4. Acceptance criteria: Auto-refresh silent token flow working on client app, handling expired refresh tokens gracefully.
+[00:04:45] Amit (DevOps Lead): A big blocker/risk here: our third-party OAuth provider API rate limits might hit us during heavy load testing. If rate limits are exceeded, user logins will fail.
+[00:05:15] Priya (Product Manager): Severity for that OAuth rate limit risk is High. Affected component is Authentication Service. Mitigation: We need to implement client-side token caching and request exponential backoff.
+[00:05:45] Rahul (Backend Lead): Sounds solid. Let's make sure all these items are logged and exported to our sprint board.

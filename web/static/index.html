@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Mind AI - Transcript-to-Action Item & Decision Intelligence</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon">🧠</div>
+                <div>
+                    <h1>Meeting Mind <span class="accent-text">AI</span></h1>
+                    <p class="tagline">Transcript-to-Action Item & Decision Intelligence Engine</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <div class="status-badge pulse-green">
+                    <span class="dot"></span> Claude Powered & Pydantic Guarded
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <main class="main-layout">
+            <!-- Left Panel: Input & Controls -->
+            <section class="panel input-panel">
+                <div class="panel-header">
+                    <h2>📄 Raw Transcript Input</h2>
+                    <div class="sample-picker">
+                        <label for="sample-select">Load Preset Sample:</label>
+                        <select id="sample-select" class="form-select">
+                            <option value="">-- Choose Sample Transcript --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <textarea id="transcript-input" placeholder="Paste your raw meeting transcript here (with timestamps, filler words, speaker tags)..."></textarea>
+                    <div class="file-drop-zone" id="drop-zone">
+                        <span>📁 Or drag and drop a .txt transcript file here</span>
+                        <input type="file" id="file-input" accept=".txt">
+                    </div>
+                </div>
+
+                <!-- Pipeline Controls -->
+                <div class="controls-card">
+                    <h3>🛠️ Intelligence Pipeline Options</h3>
+                    <div class="toggle-grid">
+                        <label class="toggle-item">
+                            <input type="checkbox" id="strip-timestamps" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Strip Timestamps <code>[00:12:34]</code></span>
+                        </label>
+                        <label class="toggle-item">
+                            <input type="checkbox" id="clean-fillers" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Clean Fillers (*"um", "ah", "you know"*)</span>
+                        </label>
+                        <label class="toggle-item">
+                            <input type="checkbox" id="force-mock">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Offline Test Engine (Fast Mock)</span>
+                        </label>
+                    </div>
+
+                    <div class="model-select-group">
+                        <label for="provider-select">AI Engine Provider:</label>
+                        <select id="provider-select" class="form-select">
+                            <option value="azure_openai" selected>Azure OpenAI (Pydantic Structured Outputs)</option>
+                            <option value="anthropic">Claude 3.5 Sonnet (Anthropic API)</option>
+                            <option value="mock">Offline Test Engine (Fast Mock)</option>
+                        </select>
+                    </div>
+
+
+                    <button id="process-btn" class="btn btn-primary btn-block">
+                        <span class="btn-icon">🧠</span> Extract Intelligence
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Panel: Intelligence Results Dashboard -->
+            <section class="panel results-panel">
+                <div id="welcome-placeholder" class="placeholder-card">
+                    <div class="placeholder-icon">✨</div>
+                    <h3>Ready for Extraction</h3>
+                    <p>Paste a raw transcript or pick a sample preset on the left, then click <strong>Extract Intelligence</strong> to clean noise, disambiguate speakers, and extract structured action items, architecture decisions, and risks.</p>
+                </div>
+
+                <div id="loading-spinner" class="loading-card hidden">
+                    <div class="spinner"></div>
+                    <p class="loading-text">Cleaning noise, running Claude extraction, and validating Pydantic schemas...</p>
+                </div>
+
+                <div id="results-content" class="results-container hidden">
+                    <!-- Stats Bar -->
+                    <div class="stats-bar">
+                        <div class="stat-item">
+                            <span class="stat-value" id="stat-timestamps">0</span>
+                            <span class="stat-label">Timestamps Stripped</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="stat-fillers">0</span>
+                            <span class="stat-label">Fillers Removed</span>
+                        </div>
+                        <div class="stat-item highlight-cyan">
+                            <span class="stat-value" id="stat-actions">0</span>
+                            <span class="stat-label">Action Items</span>
+                        </div>
+                        <div class="stat-item highlight-purple">
+                            <span class="stat-value" id="stat-decisions">0</span>
+                            <span class="stat-label">Decisions Logged</span>
+                        </div>
+                        <div class="stat-item highlight-amber">
+                            <span class="stat-value" id="stat-risks">0</span>
+                            <span class="stat-label">Risks Flagged</span>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <nav class="tabs-nav">
+                        <button class="tab-btn active" data-tab="tab-summary">📌 Summary</button>
+                        <button class="tab-btn" data-tab="tab-actions">⚡ Action Items (<span id="action-count-badge">0</span>)</button>
+                        <button class="tab-btn" data-tab="tab-decisions">🏗️ Decisions (<span id="decision-count-badge">0</span>)</button>
+                        <button class="tab-btn" data-tab="tab-risks">⚠️ Risks (<span id="risk-count-badge">0</span>)</button>
+                        <button class="tab-btn" data-tab="tab-markdown">📝 Markdown Digest</button>
+                        <button class="tab-btn" data-tab="tab-json">💾 JSON Payload</button>
+                    </nav>
+
+                    <!-- Tab Contents -->
+                    <div class="tab-viewport">
+                        <!-- Tab 1: Executive Summary -->
+                        <div id="tab-summary" class="tab-content active">
+                            <div class="summary-card">
+                                <h3 id="summary-title" class="summary-heading">Meeting Title</h3>
+                                <p id="summary-overview" class="summary-text"></p>
+
+                                <div class="takeaways-section">
+                                    <h4>🔑 Key Takeaways</h4>
+                                    <ul id="takeaways-list" class="takeaways-list"></ul>
+                                </div>
+
+                                <div class="participants-section">
+                                    <h4>👥 Identified Participants</h4>
+                                    <div id="participants-chips" class="chips-group"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Action Items Matrix -->
+                        <div id="tab-actions" class="tab-content">
+                            <div class="actions-toolbar">
+                                <div class="filter-group">
+                                    <label>Filter Priority:</label>
+                                    <button class="filter-chip active" data-filter="ALL">All</button>
+                                    <button class="filter-chip" data-filter="High">🔴 High</button>
+                                    <button class="filter-chip" data-filter="Medium">🟡 Medium</button>
+                                    <button class="filter-chip" data-filter="Low">🟢 Low</button>
+                                </div>
+                            </div>
+
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Task Title</th>
+                                            <th>Assignee</th>
+                                            <th>Priority</th>
+                                            <th>Effort</th>
+                                            <th>Timeline</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="actions-table-body"></tbody>
+                                </table>
+                            </div>
+
+                            <h4 class="subheading">📋 Detailed Acceptance Criteria</h4>
+                            <div id="action-cards-container" class="cards-grid"></div>
+                        </div>
+
+                        <!-- Tab 3: Architecture Decisions -->
+                        <div id="tab-decisions" class="tab-content">
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Topic</th>
+                                            <th>Agreed Decision</th>
+                                            <th>Rationale</th>
+                                            <th>Impacted Systems</th>
+                                            <th>Owner</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="decisions-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab 4: Blockers & Risk Log -->
+                        <div id="tab-risks" class="tab-content">
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Affected Component</th>
+                                            <th>Risk Description</th>
+                                            <th>Severity</th>
+                                            <th>Mitigation Strategy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="risks-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab 5: Markdown Digest -->
+                        <div id="tab-markdown" class="tab-content">
+                            <div class="action-bar">
+                                <button id="copy-md-btn" class="btn btn-secondary">📋 Copy Markdown</button>
+                                <span id="copy-feedback" class="feedback-text"></span>
+                            </div>
+                            <pre id="markdown-viewer" class="code-block"></pre>
+                        </div>
+
+                        <!-- Tab 6: JSON Payload -->
+                        <div id="tab-json" class="tab-content">
+                            <div class="action-bar">
+                                <button id="download-json-btn" class="btn btn-secondary">💾 Download JSON</button>
+                            </div>
+                            <pre id="json-viewer" class="code-block json-syntax"></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/script.js?v=2"></script>
+</body>
+</html>
