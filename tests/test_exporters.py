@@ -27,6 +27,8 @@ def sample_meeting_result():
                 title="Configure Redis cluster",
                 assignee="Amit",
                 role="DevOps Lead",
+                who_said="Rahul (Backend Lead)",
+                context_snippet="We should set up Redis for sessions.",
                 priority=PriorityEnum.HIGH,
                 complexity=ComplexityEnum.MODERATE,
                 timeline="Thursday",
@@ -39,6 +41,7 @@ def sample_meeting_result():
                 decision="Migrate to Redis",
                 reason="Memcached connection limit bottlenecks",
                 owner="Rahul",
+                who_said="Rahul (Backend Lead)",
                 impacted_systems=["Backend API"]
             )
         ],
@@ -49,6 +52,8 @@ def sample_meeting_result():
                 severity=PriorityEnum.HIGH,
                 impact="Auth Service",
                 mitigation_strategy="Request backoff"
+                ,
+                who_said="Amit (DevOps Lead)"
             )
         ]
     )
