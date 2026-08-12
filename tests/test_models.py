@@ -42,6 +42,7 @@ def test_invalid_priority_enum():
             who_said="Unknown",
             context_snippet="Invalid",
             priority="CriticalAlert",  # Invalid enum value
+            # type: ignore[arg-type]
             effort=EffortEnum.SIMPLE,
             target_timeline="Tomorrow"
         )
