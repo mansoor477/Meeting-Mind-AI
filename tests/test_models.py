@@ -4,6 +4,7 @@ Unit tests for Meeting Mind AI Pydantic Schemas.
 
 import pytest
 from pydantic import ValidationError
+from typing import Any, cast
 
 from meeting_mind.models import (
     MeetingIntelligenceOutput,
@@ -41,8 +42,7 @@ def test_invalid_priority_enum():
             assignee="Unknown",
             who_said="Unknown",
             context_snippet="Invalid",
-            priority="CriticalAlert",  # Invalid enum value
-            # type: ignore[arg-type]
+            priority=cast(Any, "CriticalAlert"),  # Invalid enum value (cast to Any for static checkers)
             effort=EffortEnum.SIMPLE,
             target_timeline="Tomorrow"
         )
