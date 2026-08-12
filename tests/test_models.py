@@ -21,6 +21,8 @@ def test_action_item_model():
         task_id="ACTION-001",
         title="Implement JWT Refresh Token Rotation",
         assignee="Rahul (Backend Lead)",
+        who_said="Rahul (Backend Lead)",
+        context_snippet="Implement rotation for security",
         priority=PriorityEnum.HIGH,
         effort=EffortEnum.MODERATE,
         target_timeline="End of Sprint 4",
@@ -37,6 +39,8 @@ def test_invalid_priority_enum():
             task_id="ACTION-001",
             title="Invalid Task",
             assignee="Unknown",
+            who_said="Unknown",
+            context_snippet="Invalid",
             priority="CriticalAlert",  # Invalid enum value
             effort=EffortEnum.SIMPLE,
             target_timeline="Tomorrow"
