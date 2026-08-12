@@ -7,7 +7,7 @@ and an offline Mock Engine fallback.
 import json
 import os
 import re
-from typing import Dict, Any, Optional
+from typing import Any, cast, Dict, List, Optional, Tuple
 from pydantic import ValidationError
 
 try:
@@ -26,12 +26,15 @@ from meeting_mind.models import (
     EffortEnum
 )
 
+anthropic: Any = None
 try:
     import anthropic  # type: ignore
     HAS_ANTHROPIC = True
 except ImportError:
     HAS_ANTHROPIC = False
 
+AzureOpenAI: Any = None
+OpenAI: Any = None
 try:
     import openai  # type: ignore
     from openai import AzureOpenAI, OpenAI  # type: ignore
@@ -73,7 +76,7 @@ Multi-Dimensional Extraction Directives:
    - State affected_component, risk_description, severity, who_said (speaker), and mitigation_strategy.
 """
 
-MEETING_INTELLIGENCE_TOOL_SPEC = {
+MEETING_INTELLIGENCE_TOOL_SPEC: Any = {
     "name": "submit_meeting_intelligence",
     "description": "Submit structured meeting intelligence data extracted from transcript",
     "input_schema": MeetingIntelligenceOutput.model_json_schema()
@@ -101,6 +104,8 @@ class MeetingMindEngine:
         self.azure_endpoint = azure_endpoint or os.getenv("AZURE_OPENAI_ENDPOINT", "https://your-resource.openai.azure.com/")
         self.azure_deployment = azure_deployment or os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o")
         self.azure_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-08-01-preview")
+        self.azure_client: Optional[Any] = None
+        self.anthropic_client: Optional[Any] = None
 
         # Anthropic credentials
         self.anthropic_api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
@@ -139,7 +144,10 @@ class MeetingMindEngine:
     def _process_azure_openai(self, transcript: str) -> MeetingIntelligenceOutput:
         """Uses Azure OpenAI Structured Outputs with Pydantic model validation."""
         try:
-            response = self.azure_client.beta.chat.completions.parse(
+            azure_client = self.azure_client
+            if azure_client is None:
+                raise RuntimeError("Azure client is not available")
+            response = azure_client.beta.chat.completions.parse(
                 model=self.azure_deployment,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -158,11 +166,14 @@ class MeetingMindEngine:
     def _process_anthropic(self, transcript: str) -> MeetingIntelligenceOutput:
         """Uses Anthropic Claude API tool calling with Pydantic model validation."""
         try:
-            response = self.anthropic_client.messages.create(
+            anthropic_client = self.anthropic_client
+            if anthropic_client is None:
+                raise RuntimeError("Anthropic client is not available")
+            response = anthropic_client.messages.create(
                 model=self.claude_model,
                 max_tokens=4096,
                 system=SYSTEM_PROMPT,
-                tools=[MEETING_INTELLIGENCE_TOOL_SPEC],
+                tools=cast(list[Any], [MEETING_INTELLIGENCE_TOOL_SPEC]),
                 tool_choice={"type": "tool", "name": "submit_meeting_intelligence"},
                 messages=[
                     {"role": "user", "content": f"Please process the following meeting transcript:\n\n{transcript}"}
@@ -395,29 +406,29 @@ class MeetingMindEngine:
                 if not systems:
                     systems = ["Core Architecture"]
 
-                decisions.append(ArchitectureDecision(
-                    decision_id=f"DEC-00{dec_idx}",
-                    topic=topic_title,
-                    decision=content[:120],
-                    rationale=f"Agreed upon in discussion: {content[:100]}",
-                    impacted_systems=systems,
-                    owner=owner,
-                    who_said=who_said
-                ))
+                decisions.append(ArchitectureDecision.model_validate({
+                    "decision_id": f"DEC-00{dec_idx}",
+                    "topic": topic_title,
+                    "decision": content[:120],
+                    "rationale": f"Agreed upon in discussion: {content[:100]}",
+                    "impacted_systems": systems,
+                    "owner": owner,
+                    "who_said": who_said
+                }))
                 dec_idx += 1
                 if len(decisions) >= 3:
                     break
 
         if not decisions:
-            decisions.append(ArchitectureDecision(
-                decision_id="DEC-001",
-                topic="Operational Plan Alignment",
-                decision="Proceed with agreed action items and review in next sync",
-                rationale="Ensures execution continuity and milestone delivery",
-                impacted_systems=["Project Workflow"],
-                owner=participants[0],
-                who_said=participants[0]
-            ))
+            decisions.append(ArchitectureDecision.model_validate({
+                "decision_id": "DEC-001",
+                "topic": "Operational Plan Alignment",
+                "decision": "Proceed with agreed action items and review in next sync",
+                "rationale": "Ensures execution continuity and milestone delivery",
+                "impacted_systems": ["Project Workflow"],
+                "owner": participants[0],
+                "who_said": participants[0]
+            }))
 
         # 5. Extract Risks & Blockers dynamically
         risks = []
@@ -440,27 +451,27 @@ class MeetingMindEngine:
                 if "mitigation" in line_lower or "strategy" in line_lower:
                     mitigation = content[:120]
 
-                risks.append(ProjectRisk(
-                    risk_id=f"RISK-00{risk_idx}",
-                    risk_description=content,
-                    severity=severity,
-                    affected_component="System Access / Security / Operations",
-                    mitigation_strategy=mitigation,
-                    who_said=who_said
-                ))
+                risks.append(ProjectRisk.model_validate({
+                    "risk_id": f"RISK-00{risk_idx}",
+                    "risk_description": content,
+                    "severity": severity,
+                    "affected_component": "System Access / Security / Operations",
+                    "mitigation_strategy": mitigation,
+                    "who_said": who_said
+                }))
                 risk_idx += 1
                 if len(risks) >= 3:
                     break
 
         if not risks:
-            risks.append(ProjectRisk(
-                risk_id="RISK-001",
-                risk_description="Dependencies & Timeline Tracking - Potential schedule delay",
-                severity=PriorityEnum.LOW,
-                affected_component="Project Schedule",
-                mitigation_strategy="Monitor progress in daily standups",
-                who_said=participants[0]
-            ))
+            risks.append(ProjectRisk.model_validate({
+                "risk_id": "RISK-001",
+                "risk_description": "Dependencies & Timeline Tracking - Potential schedule delay",
+                "severity": PriorityEnum.LOW,
+                "affected_component": "Project Schedule",
+                "mitigation_strategy": "Monitor progress in daily standups",
+                "who_said": participants[0]
+            }))
 
         # 6. Synthesize Key Takeaways
         key_takeaways = []
